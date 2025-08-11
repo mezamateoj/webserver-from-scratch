@@ -18,6 +18,8 @@ function newConn(socket: net.Socket): void {
         console.log('data', data);
         socket.write(data); // echo back the data
 
+        throw;
+
 
         if (data.includes('q')) {
             console.log('closing')
