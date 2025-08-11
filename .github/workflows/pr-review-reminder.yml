@@ -1,8 +1,8 @@
-name: PR Review Reminder
+name: PR Review Reminder to Google Chat
 
 on:
   schedule:
-    - cron: "0 10 * * *" # Every day at 10:00 UTC
+    - cron: "0 13 * * *"  # Daily at 13:00 UTC (adjust as needed)
   workflow_dispatch:
 
 jobs:
@@ -12,37 +12,36 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup GitHub CLI
-        uses: cli/cli-action@v2
+      - name: Get open PRs needing review
+        id: prs
+        uses: actions/github-script@v7
         with:
-          version: latest
+          script: |
+            const prs = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open'
+            });
+            const filtered = prs.data.filter(pr => pr.requested_reviewers.length > 0);
+            return filtered.map(pr => ({
+              number: pr.number,
+              title: pr.title,
+              url: pr.html_url,
+              reviewers: pr.requested_reviewers.map(r => r.login)
+            }));
 
-      - name: Send PR reminder to Google Chat
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CHAT_WEBHOOK: ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
-        run: |
-          # Fetch PRs with review requests
-          prs=$(gh pr list --state open --json number,title,url,reviewRequests \
-                --jq '.[] | select(.reviewRequests != [])')
-
-          if [ -z "$prs" ]; then
-            payload='{"text": "✅ No pending PR reviews today!"}'
-            curl -X POST -H "Content-Type: application/json" \
-              -d "$payload" "$CHAT_WEBHOOK"
-            exit 0
-          fi
-
-          # Build Google Chat message
-          message="*📢 Pending PR Reviews:*\n"
-          echo "$prs" | jq -c '.' | while read -r pr; do
-            number=$(echo "$pr" | jq -r '.number')
-            title=$(echo "$pr" | jq -r '.title')
-            url=$(echo "$pr" | jq -r '.url')
-            reviewers=$(echo "$pr" | jq -r '.reviewRequests[].login' | tr '\n' ' ')
-            message+="• <${url}|#${number} - ${title}> — _${reviewers}_\n"
-          done
-
-          payload=$(jq -n --arg text "$message" '{text: $text}')
-          curl -X POST -H "Content-Type: application/json" \
-            -d "$payload" "$CHAT_WEBHOOK"
+      - name: Send reminder to Google Chat
+        if: steps.prs.outputs.result != '[]'
+        uses: google-github-actions/send-google-chat-webhook@v0.0.4
+        with:
+          webhook_url: ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
+          payload: |
+            {
+              "text": "*Daily Review Reminder*\n${{ steps.prs.outputs.result }}"
+            }
+      - name: No pending PRs
+        if: steps.prs.outputs.result == '[]'
+        uses: google-github-actions/send-google-chat-webhook@v0.0.4
+        with:
+          webhook_url: ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
+          payload: '{"text": "✅ No PRs awaiting review today!"}'
