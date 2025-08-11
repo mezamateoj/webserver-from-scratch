@@ -1,0 +1,48 @@
+name: PR Review Reminder
+
+on:
+  schedule:
+    - cron: "0 10 * * *" # Every day at 10:00 UTC
+  workflow_dispatch:
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup GitHub CLI
+        uses: cli/cli-action@v2
+        with:
+          version: latest
+
+      - name: Send PR reminder to Google Chat
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CHAT_WEBHOOK: ${{ secrets.GOOGLE_CHAT_WEBHOOK }}
+        run: |
+          # Fetch PRs with review requests
+          prs=$(gh pr list --state open --json number,title,url,reviewRequests \
+                --jq '.[] | select(.reviewRequests != [])')
+
+          if [ -z "$prs" ]; then
+            payload='{"text": "✅ No pending PR reviews today!"}'
+            curl -X POST -H "Content-Type: application/json" \
+              -d "$payload" "$CHAT_WEBHOOK"
+            exit 0
+          fi
+
+          # Build Google Chat message
+          message="*📢 Pending PR Reviews:*\n"
+          echo "$prs" | jq -c '.' | while read -r pr; do
+            number=$(echo "$pr" | jq -r '.number')
+            title=$(echo "$pr" | jq -r '.title')
+            url=$(echo "$pr" | jq -r '.url')
+            reviewers=$(echo "$pr" | jq -r '.reviewRequests[].login' | tr '\n' ' ')
+            message+="• <${url}|#${number} - ${title}> — _${reviewers}_\n"
+          done
+
+          payload=$(jq -n --arg text "$message" '{text: $text}')
+          curl -X POST -H "Content-Type: application/json" \
+            -d "$payload" "$CHAT_WEBHOOK"
