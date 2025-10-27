@@ -39,8 +39,7 @@ jobs:
     if: |-
       (
         github.event.sender.type == 'User' &&
-        github.event.pull_request.state == 'open' &&
-        startsWith(github.event.comment.body || github.event.review.body || github.event.issue.body, '@gemini-cli') &&
+        startsWith(coalesce(github.event.comment.body, github.event.review.body, ''), '@gemini-cli /review') &&
         contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association || github.event.review.author_association || github.event.issue.author_association)
       )
     runs-on: "ubuntu-latest"
