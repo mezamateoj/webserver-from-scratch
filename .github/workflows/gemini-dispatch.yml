@@ -35,15 +35,10 @@ jobs:
   dispatch:
     # Only trigger on PR comments with @gemini-cli /review by OWNER/MEMBER/COLLABORATOR
     if: |-
-      (
-        github.event.sender.type == 'User' &&
-        (
-          (github.event_name == 'issue_comment' && github.event.issue.pull_request != null) ||
-          github.event_name == 'pull_request_review_comment'
-        ) &&
-        startsWith(coalesce(github.event.comment.body, github.event.review.body, ''), '@gemini-cli /review') &&
-        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), coalesce(github.event.comment.author_association, github.event.review.author_association, ''))
-      )
+      github.event.sender.type == 'User' &&
+      github.event.issue.pull_request != null &&
+      startsWith(github.event.comment.body, '@gemini-cli /review') &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
     runs-on: "ubuntu-latest"
     permissions:
       contents: "read"
