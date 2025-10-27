@@ -22,7 +22,7 @@ function newConn(socket: net.Socket): void {
         if (data.includes('q')) {
             console.log('closing')
             socket.end();  // sends FIN and close connection
-        }
+
     })
 }
 
