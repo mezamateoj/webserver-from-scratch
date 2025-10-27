@@ -18,7 +18,6 @@ function newConn(socket: net.Socket): void {
         console.log('data', data);
         socket.write(data); // echo back the data
 
-
         if (data.includes('q')) {
             console.log('closing')
             socket.end();  // sends FIN and close connection
