@@ -17,8 +17,6 @@ defaults:
 
 jobs:
   debugger:
-    if: |-
-      ${{ fromJSON(vars.DEBUG || vars.ACTIONS_STEP_DEBUG || false) }}
     runs-on: "ubuntu-latest"
     permissions:
       contents: "read"
@@ -27,13 +25,26 @@ jobs:
         env:
           DEBUG_event_name: "${{ github.event_name }}"
           DEBUG_event__action: "${{ github.event.action }}"
-          DEBUG_event__comment__author_association: "${{ github.event.comment.author_association }}"
-          DEBUG_event__issue__author_association: "${{ github.event.issue.author_association }}"
-          DEBUG_event__pull_request__author_association: "${{ github.event.pull_request.author_association }}"
-          DEBUG_event__review__author_association: "${{ github.event.review.author_association }}"
+          DEBUG_sender_type: "${{ github.event.sender.type }}"
+          DEBUG_comment_body: "${{ github.event.comment.body }}"
+          DEBUG_review_body: "${{ github.event.review.body }}"
+          DEBUG_issue_body: "${{ github.event.issue.body }}"
+          DEBUG_comment__author_association: "${{ github.event.comment.author_association }}"
+          DEBUG_issue__author_association: "${{ github.event.issue.author_association }}"
+          DEBUG_pull_request__author_association: "${{ github.event.pull_request.author_association }}"
+          DEBUG_review__author_association: "${{ github.event.review.author_association }}"
           DEBUG_event: "${{ toJSON(github.event) }}"
         run: |-
-          env | grep '^DEBUG_'
+          echo "=== Event Details ==="
+          env | grep '^DEBUG_' | grep -v 'DEBUG_event='
+          echo ""
+          echo "=== Condition Checks ==="
+          echo "Sender is User: ${{ github.event.sender.type == 'User' }}"
+          echo "Starts with @gemini-cli: ${{ startsWith(github.event.comment.body || github.event.review.body || github.event.issue.body, '@gemini-cli') }}"
+          echo "Author is authorized: ${{ contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association || github.event.review.author_association || github.event.issue.author_association) }}"
+          echo ""
+          echo "=== Full Event ==="
+          env | grep '^DEBUG_event='
 
   dispatch:
     # Only trigger on PR comments with @gemini-cli /review by OWNER/MEMBER/COLLABORATOR
