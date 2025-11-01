@@ -1,7 +1,7 @@
 // TCP server that reads data from
 // clients and writes the same data back. an “echo server”.
 
-import net from 'node:net';
+import * as net from 'node:net';
 
 // callback function
 // the runtime will automatically perform the accept operation and invoke the callback
@@ -22,7 +22,7 @@ function newConn(socket: net.Socket): void {
         if (data.includes('q')) {
             console.log('closing')
             socket.end();  // sends FIN and close connection
-
+        }
     })
 }
 
