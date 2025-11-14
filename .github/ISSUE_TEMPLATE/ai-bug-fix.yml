@@ -35,8 +35,8 @@ body:
         - `src/components/FormSubmit.jsx:45-67`
         - `src/services/api/submitForm.js:12-34`
         - `src/store/formReducer.js:88` (handleSubmit function)
-      validations:
-        required: true
+    validations:
+      required: true
 
   - type: textarea
     id: error_logs
@@ -109,5 +109,5 @@ body:
         - Use async/await pattern (no callbacks)
         - Write unit tests for the fix
         - Performance is critical: optimize query at line 45
-      validations:
-        required: false
+    validations:
+      required: false
