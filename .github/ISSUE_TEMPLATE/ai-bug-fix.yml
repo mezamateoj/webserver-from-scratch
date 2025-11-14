@@ -1,0 +1,113 @@
+name: 🐛 Bug Fix Task (AI-Targeted)
+description: Report a bug with complete context for AI resolution
+title: "[BUG] "
+labels: ["bug", "ai-solvable"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # 🐛 Bug Report for AI Resolution
+
+        This template guides AI agents to understand and fix bugs efficiently.
+        Provide **all relevant context** in the sections below.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: |
+        Clear, concise explanation of what is broken.
+        Format: "When [user action], [expected behavior] but [actual behavior]"
+      placeholder: "When submitting the form, the app crashes instead of saving data"
+    validations:
+      required: true
+
+  - type: textarea
+    id: affected_files
+    attributes:
+      label: Affected Files & Code Paths
+      description: |
+        CRITICAL FOR AI: List exact file paths, function names, and line numbers.
+        Format each entry as: `path/to/file.js:LINE` or `ClassName.methodName()`
+      placeholder: |
+        - `src/components/FormSubmit.jsx:45-67`
+        - `src/services/api/submitForm.js:12-34`
+        - `src/store/formReducer.js:88` (handleSubmit function)
+      validations:
+        required: true
+
+  - type: textarea
+    id: error_logs
+    attributes:
+      label: Error Logs & Stack Traces
+      description: |
+        Paste complete error messages and stack traces.
+        Browser console errors, backend logs, etc.
+      placeholder: |
+        ```
+        TypeError: Cannot read property 'data' of undefined
+          at submitForm (src/services/api/submitForm.js:18:15)
+          at handleSubmit (src/components/FormSubmit.jsx:52:8)
+        ```
+    validations:
+      required: false
+
+  - type: textarea
+    id: code_context
+    attributes:
+      label: Relevant Code Snippet
+      description: |
+        Paste the problematic code section (max 50 lines).
+        Use proper syntax highlighting with language tags.
+      placeholder: |
+        ```javascript
+        // src/components/FormSubmit.jsx
+        const handleSubmit = async (formData) => {
+          try {
+            const response = await submitForm(formData);
+            // Bug: response is undefined here
+            navigate(response.data.redirectUrl);
+          } catch (error) {
+            console.error('Submit failed:', error);
+          }
+        };
+        ```
+    validations:
+      required: false
+
+  - type: textarea
+    id: related_config
+    attributes:
+      label: Related Configuration Files
+      description: |
+        Paste relevant config files that might affect the bug.
+        Examples: .env, tsconfig.json, jest.config.js
+      placeholder: |
+        ```json
+        // tsconfig.json
+        {
+          "compilerOptions": {
+            "strict": true,
+            "strictNullChecks": true
+          }
+        }
+        ```
+    validations:
+      required: false
+
+  - type: textarea
+    id: ai_instructions
+    attributes:
+      label: AI Agent Instructions (Optional)
+      description: |
+        Special instructions for AI agents solving this.
+        Constraints, priorities, or specific approaches to consider.
+      placeholder: |
+        - Maintain backward compatibility
+        - Use async/await pattern (no callbacks)
+        - Write unit tests for the fix
+        - Performance is critical: optimize query at line 45
+      validations:
+        required: false
